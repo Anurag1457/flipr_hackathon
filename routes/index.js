@@ -46,5 +46,29 @@ router.get("/logout", function(req, res){
 });
 
 
+const GoogleStrategy = require('passport-google-oauth').OAuth2Strategy;
+const GOOGLE_CLIENT_ID = '955170330138-peek1s3kjkl78dtpfg7m8pdudajmfnf2.apps.googleusercontent.com';
+const GOOGLE_CLIENT_SECRET = 'OeZDElHj3FvIRgc5QeWU4nvP';
+passport.use(new GoogleStrategy({
+    clientID: GOOGLE_CLIENT_ID,
+    clientSecret: GOOGLE_CLIENT_SECRET,
+    callbackURL: "http://localhost:3000/auth/google/callback"
+  },
+  function(accessToken, refreshToken, profile, done) {
+      userProfile=profile;
+      return done(null, userProfile);
+  }
+));
+ 
+router.get('/auth/google', 
+  passport.authenticate('google', { scope : ['profile', 'email'] }));
+ 
+router.get('/auth/google/callback', 
+  passport.authenticate('google', { failureRedirect: '/error' }),
+  function(req, res) {
+    // Successful authentication, redirect success.
+    res.redirect('/success');
+  });
+
 
 module.exports = router;
