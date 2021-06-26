@@ -1,7 +1,8 @@
 var express = require("express");
 var router  = express.Router();
 var passport = require("passport");
-var User = require("../models/user");
+var User = require("../models/User");
+
 
 //root route
 router.get("/", function(req, res){
@@ -15,7 +16,7 @@ router.get("/register", function(req, res){
 
 //handle sign up logic
 router.post("/register", function(req, res){
-    var newUser = new User({username: req.body.username});
+    var newUser = new User({username: req.body.username,email:req.body.email});
     User.register(newUser, req.body.password, function(err, user){
         if(err){
             return res.render("register");
@@ -45,6 +46,10 @@ router.get("/logout", function(req, res){
    res.redirect("/landing");
 });
 
+// google oauth
+
+router.get('/success', (req, res) => res.redirect("/",{usecurrentUser:profile}));
+router.get('/error', (req, res) => res.send("error logging in"));
 
 const GoogleStrategy = require('passport-google-oauth').OAuth2Strategy;
 const GOOGLE_CLIENT_ID = '955170330138-peek1s3kjkl78dtpfg7m8pdudajmfnf2.apps.googleusercontent.com';
@@ -54,9 +59,10 @@ passport.use(new GoogleStrategy({
     clientSecret: GOOGLE_CLIENT_SECRET,
     callbackURL: "http://localhost:3000/auth/google/callback"
   },
-  function(accessToken, refreshToken, profile, done) {
-      userProfile=profile;
-      return done(null, userProfile);
+  async function(accessToken, refreshToken, profile, done) {
+    process.nextTick(function() {
+      //userProfile=profile;
+      return done(null, profile)});
   }
 ));
  
@@ -67,8 +73,8 @@ router.get('/auth/google/callback',
   passport.authenticate('google', { failureRedirect: '/error' }),
   function(req, res) {
     // Successful authentication, redirect success.
-    res.redirect('/');
+    console.log(res);
+    res.redirect('/success');
   });
-
 
 module.exports = router;
